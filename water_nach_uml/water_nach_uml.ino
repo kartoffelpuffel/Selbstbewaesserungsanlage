@@ -1,5 +1,5 @@
 // Pin definitions
-const int relayPin = 15;       // Pump relay
+const int relayPin = 9;//15;       // Pump relay
 const int moisturePin = 14;    // Soil moisture sensor
 const int buzzerPin = 8;       // Buzzer for beeping
 const int fuelPin = 16;        // Fuel (or water level) sensor
@@ -9,13 +9,16 @@ const int moistureThreshold = 500; // Above this value, the soil is considered "
 const int fuelThreshold     = 500; // Above this value, the fuel is considered "empty"
 
 // Sleep durations in milliseconds
-const unsigned long pumpSleepDuration    = 10 * 60; // Sleep 10 minutes after pumping
-const unsigned long nonDrySleepDuration  = 24 * 60 * 60; // Sleep 24 hours if not dry
+const unsigned long pumpSleepDuration    = 24;//10 * 60; // Sleep 10 minutes after pumping
+const unsigned long nonDrySleepDuration  = 24;//24 * 60 * 60; // Sleep 24 hours if not dry
 const unsigned long beepSleepDuration    = 8; // 8 seconds sleep between fuel checks
 
 // This variable is made volatile because it is changed inside
 // an interrupt function
 volatile int f_wdt=1;
+
+//debug
+int start = 0;
 
 // Watchdog Interrupt Service. This is executed when watchdog timed out.
 ISR(WDT_vect) {
@@ -26,6 +29,7 @@ ISR(WDT_vect) {
 		f_wdt=1;
 	}
 }
+
 
 
 void setup() {
@@ -41,8 +45,9 @@ void setup() {
   analogWrite(3,255);
 
   Serial.println("Initialising...");
-  setupWatchDogTimer();
+  setWatchdogFor(1);
   Serial.println("Initialisation complete.");
+  sleepFor(4);
 }
 
 // Function to measure moisture and decide if the soil is dry
@@ -50,6 +55,7 @@ bool isDry() {
   int moisture = analogRead(moisturePin);
   Serial.print("Moisture level: ");
   Serial.println(moisture);
+  Serial.flush();
   return (moisture > moistureThreshold);
 }
 
@@ -59,6 +65,7 @@ bool fuelIsEmpty() {
   int fuelVal = analogRead(fuelPin);
   Serial.print("Fuel level: ");
   Serial.println(fuelVal);
+  Serial.flush();
   return (fuelVal > fuelThreshold);
 }
 
@@ -73,9 +80,13 @@ void beep() {
 // Function to activate the pump
 void pump() {
   Serial.println("Pump active");
+  Serial.flush();
   pinMode(relayPin, OUTPUT);
   analogWrite(relayPin, 100); // Relais einschalten
-  delay(8000);                   // Pump for 2 seconds (adjust as needed)
+  sleepFor(4);                  // Pump for 8 seconds (adjust as needed)
+  Serial.println("Pump aus");
+  Serial.flush();
+  analogWrite(relayPin, 0);
   pinMode(relayPin, INPUT);   // Turn off pump
 }
 
@@ -91,26 +102,23 @@ void loop() {
 	// clear the flag so we can run above code again after the MCU wake up
 	f_wdt = 0;
 
-	// Re-enter sleep mode.
-	enterSleep();
-
   // Step 1: Measure moisture
   if (isDry()) {
     // If soil is dry, check fuel repeatedly
     while (fuelIsEmpty()) {
       Serial.println("Fuel is empty, beeping and waiting 8 seconds...");
       beep();
-      sleepDuration(beepSleepDuration); // Sleep 8 seconds before checking again
+      sleepFor(beepSleepDuration); // Sleep 8 seconds before checking again
     }
     
     // Once fuel level is acceptable, pump water and then sleep for 10 minutes.
     pump();
     Serial.println("Sleeping for 10 minutes after pumping...");
-    sleepDuration(pumpSleepDuration);
+    sleepFor(pumpSleepDuration);
     
   } else {
     // Soil moisture is sufficient; sleep for 24 hours.
     Serial.println("Soil is wet. Sleeping for 24 hours...");
-    sleepDuration(nonDrySleepDuration);
+    sleepFor(nonDrySleepDuration);
   }
 }
