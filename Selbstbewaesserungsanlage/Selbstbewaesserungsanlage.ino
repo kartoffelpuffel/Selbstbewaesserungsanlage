@@ -26,7 +26,7 @@ ISR(WDT_vect) {
 const int dry = 530;
 const int wet = 227;
 const int moisturetarget = 40;
-const int volume = 500;
+const float volume = 500;
 
 
 
@@ -75,7 +75,7 @@ void loop() {
 	int moisturenow = map(sensorval, dry, wet, 0, 100);
 	moisturenow = constrain(moisturenow, 0, 100);
 
-	int wasserpumpen = (moisturenow - moisturetarget) * volume;
+	float wasserpumpen = float((moisturetarget - moisturenow))/100 * volume;
 
 	Serial.print("Sensorval: ");
   Serial.println(sensorval);
