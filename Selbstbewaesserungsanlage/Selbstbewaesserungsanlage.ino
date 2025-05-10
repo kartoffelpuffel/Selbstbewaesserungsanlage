@@ -1,8 +1,6 @@
 const int moisturePin = 1;
 const int relayPin = 9;
-const int moistureThreshold = 350;
-const int sleepAfterPumpen = 30;
-const int sleepAfterMoistureOk = 60;
+
 
 byte adcsra_save = 135;
 
@@ -25,33 +23,42 @@ ISR(WDT_vect) {
 
 
 
+const int dry = 530;
+const int wet = 227;
+const int moisturetarget = 40;
+const int volume = 500;
+
+
+
+
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   setWatchdogFor(1);
 
   pinMode(moisturePin, INPUT);
-	pinMode(relayPin, OUTPUT);
+	// pinMode(relayPin, OUTPUT);
   
 }
 
 
 
-bool isDry(){
-	int moisture = analogRead(moisturePin);
-  Serial.print("Moisture level: ");
-  Serial.println(moisture);
-  Serial.flush();
-  return (moisture > moistureThreshold);
-}
+// bool isDry(){
+// 	int moisture = analogRead(moisturePin);
+//   Serial.print("Moisture level: ");
+//   Serial.println(moisture);
+//   Serial.flush();
+//   return (moisture > moistureThreshold);
+// }
 
 
-void pumpen(){
-	Serial.println("begin pumpe");
-	Serial.flush();
+// void pumpen(){
+// 	Serial.println("begin pumpe");
+// 	Serial.flush();
 
-	digitalWrite(relayPin, HIGH);
-}
+// 	digitalWrite(relayPin, HIGH);
+// }
 
 
 
@@ -64,20 +71,44 @@ void loop() {
 	f_wdt = 0;
   
 
-	if(isDry()){
-		pumpen();
-	}
-	else{
-		digitalWrite(relayPin, LOW);
-		Serial.println("stop pumpe");
-		Serial.flush();
-		
-		Serial.println("gehe schlafen");
-		Serial.flush();
+	int sensorval = analogRead(moisturePin);
+	int moisturenow = map(sensorval, dry, wet, 0, 100);
+	moisturenow = constrain(moisturenow, 0, 100);
 
-		// disable ADC
-		ADCSRA = 0;
-		sleepFor(4);
-		ADCSRA = adcsra_save;
+	int wasserpumpen = (moisturenow - moisturetarget) * volume;
+
+	Serial.print("Sensorval: ");
+  Serial.println(sensorval);
+	Serial.flush();
+	Serial.print("Moisture level: ");
+  Serial.println(moisturenow);
+	Serial.flush();
+	Serial.print("Wasser pumpen: ");
+  Serial.print(wasserpumpen);
+	Serial.println("ml");
+	Serial.flush();
+	if(wasserpumpen > 0){
+		Serial.println("pumpen");
+		Serial.flush();
+	}else{
+		Serial.println("nicht pumpen");
+		Serial.flush();
 	}
+	
+	// if(isDry()){
+	// 	pumpen();
+	// }
+	// else{
+	// 	digitalWrite(relayPin, LOW);
+	// 	Serial.println("stop pumpe");
+	// 	Serial.flush();
+		
+	// 	Serial.println("gehe schlafen");
+	// 	Serial.flush();
+
+	// 	// disable ADC
+	// 	ADCSRA = 0;
+		sleepFor(4);
+	// 	ADCSRA = adcsra_save;
+	// }
 }
