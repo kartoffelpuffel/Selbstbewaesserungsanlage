@@ -27,7 +27,7 @@ const int dry = 530;
 const int wet = 227;
 const int moisturetarget = 40;
 const float volume = 500;
-
+const float durchflussrate = 18; //in ml/s
 
 
 
@@ -38,7 +38,7 @@ void setup() {
   setWatchdogFor(1);
 
   pinMode(moisturePin, INPUT);
-	// pinMode(relayPin, OUTPUT);
+	pinMode(relayPin, OUTPUT);
   
 }
 
@@ -88,7 +88,8 @@ void loop() {
 	Serial.println("ml");
 	Serial.flush();
 	if(wasserpumpen > 0){
-		Serial.println("pumpen");
+		Serial.print("pumpen for ");
+		Serial.println(wasserpumpen/durchflussrate);
 		Serial.flush();
 	}else{
 		Serial.println("nicht pumpen");
@@ -108,7 +109,14 @@ void loop() {
 
 	// 	// disable ADC
 	// 	ADCSRA = 0;
-		sleepFor(4);
+
+	// digitalWrite(relayPin,HIGH);
+	
+	sleepFor(wasserpumpen/durchflussrate);
+
+	// digitalWrite(relayPin,LOW);
+
+	sleepFor(4);
 	// 	ADCSRA = adcsra_save;
 	// }
 }
