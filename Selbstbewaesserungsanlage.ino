@@ -1,8 +1,11 @@
 const int moisturePin = 1;
 const int relayPin = 9;
-const int moistureThreshold = 350;
-const int sleepAfterPumpen = 30;
-const int sleepAfterMoistureOk = 60;
+
+const int dry = 530;
+const int wet = 227;
+const int moisturetarget = 40;
+const float volume = 500;
+const float durchflussrate = 18; //in ml/s
 
 byte adcsra_save = 135;
 
@@ -13,6 +16,7 @@ volatile int f_wdt=1;
 //debug
 int start = 0;
 
+
 // Watchdog Interrupt Service. This is executed when watchdog timed out.
 ISR(WDT_vect) {
 	if(f_wdt == 0) {
@@ -22,6 +26,10 @@ ISR(WDT_vect) {
 		f_wdt=1;
 	}
 }
+
+
+
+
 
 
 
@@ -37,27 +45,6 @@ void setup() {
 
 
 
-bool isDry(){
-	int moisture = analogRead(moisturePin);
-  Serial.print("Moisture level: ");
-  Serial.println(moisture);
-  Serial.flush();
-  return (moisture > moistureThreshold);
-}
-
-
-void pumpen(){
-	Serial.println("begin pumpe");
-	Serial.flush();
-	while(isDry()){
-		digitalWrite(relayPin, HIGH);
-	};
-	digitalWrite(relayPin, LOW);
-	Serial.println("stop pumpe");
-	Serial.flush();
-}
-
-
 
 void loop() {
 	if(f_wdt != 1) {
@@ -68,15 +55,25 @@ void loop() {
 	f_wdt = 0;
   
 
+	int sensorval = analogRead(moisturePin);
+	int moisturenow = map(sensorval, dry, wet, 0, 100);
+	moisturenow = constrain(moisturenow, 0, 100);
 
-	pumpen();
+	float wasserpumpen = float((moisturetarget - moisturenow))/100 * volume;
 
-	
-	Serial.println("gehe schlafen");
-	Serial.flush();
 
-	// disable ADC
-  ADCSRA = 0;
+	if(wasserpumpen > 0){
+		digitalWrite(relayPin,HIGH);
+		int pumptime = (int)(wasserpumpen/durchflussrate)+0.5f;
+		sleepFor(pumptime);
+		digitalWrite(relayPin,LOW);
+	}else{
+	}
+
+	// 	disable ADC
+	ADCSRA = 0;
+
 	sleepFor(4);
+
 	ADCSRA = adcsra_save;
 }
