@@ -61,13 +61,14 @@ void loop() {
 
 	float wasserpumpen = float((moisturetarget - moisturenow))/100 * volume;
 
+	wasserpumpen *= 1.1;
+
 
 	if(wasserpumpen > 0){
-		digitalWrite(relayPin,HIGH);
 		int pumptime = (int)(wasserpumpen/durchflussrate)+0.5f;
+		digitalWrite(relayPin,HIGH);
 		sleepFor(pumptime);
 		digitalWrite(relayPin,LOW);
-	}else{
 	}
 
 	// 	disable ADC
