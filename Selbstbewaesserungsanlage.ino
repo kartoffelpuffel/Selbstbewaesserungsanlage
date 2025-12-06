@@ -14,7 +14,7 @@ byte adcsra_save = 135;
 volatile int f_wdt=1;
 
 //debug
-int start = 0;
+//int start = 0;
 
 
 // Watchdog Interrupt Service. This is executed when watchdog timed out.
@@ -28,11 +28,6 @@ ISR(WDT_vect) {
 }
 
 
-
-
-
-
-
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
@@ -42,8 +37,6 @@ void setup() {
 	pinMode(relayPin, OUTPUT);
   
 }
-
-
 
 
 void loop() {
@@ -69,12 +62,14 @@ void loop() {
 		digitalWrite(relayPin,HIGH);
 		sleepFor(pumptime);
 		digitalWrite(relayPin,LOW);
+
+		sleepFor(900);
+	}else{
+		// 	disable ADC
+		ADCSRA = 0;
+
+		sleepFor(43200);
+
+		ADCSRA = adcsra_save;
 	}
-
-	// 	disable ADC
-	ADCSRA = 0;
-
-	sleepFor(4);
-
-	ADCSRA = adcsra_save;
 }
