@@ -1,0 +1,49 @@
+\documentclass[tikz,border=10pt]{standalone}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning}
+
+\begin{document}
+
+\begin{tikzpicture}[
+    block/.style = {draw, rectangle, minimum height=1.2cm, minimum width=2.8cm, align=center},
+    sum/.style   = {draw, circle, inner sep=0pt, minimum size=6mm},
+    arrow/.style = {->, thick}
+]
+
+% ===== Knoten =====
+\node (w) {$w(s)$};
+\node[sum, right=1.6cm of w] (sum) {};
+
+\node[block, right=1.6cm of sum] (R) {Regler $G_R(s)$};
+\node[block, right=2.2cm of R] (A) {Stellglied $G_S(s)$};
+\node[block, right=2.2cm of A] (G) {Regelstrecke $G_{RS}(s)$};
+
+\node[right=1.8cm of G] (y) {$y(s)$};
+
+\node[block, below=1.6cm of G] (H) {Messglied $G_M(s)$};
+
+\node[above=1.2cm of G] (d) {$z(s)$};
+
+% ===== Vorwärtsweg =====
+\draw[arrow] (w) -- node[pos=0.9, above] {$+$} (sum);
+\draw[arrow] (sum) -- node[above] {$e(s)$} (R);
+\draw[arrow] (R) -- node[above] {$u(s)$} (A);
+\draw[arrow] (A) -- node[above] {$u_s(s)$} (G);
+\draw[arrow] (G) -- node[above] {} (y);
+
+% ===== Störgröße =====
+\draw[arrow] (d) -- (G);
+
+% ===== Rückführung =====
+\draw[arrow] (y) |- (H);
+\draw[arrow] (H) -| node[pos=0.95, left] {$-$} (sum);
+
+% ===== Beschriftungen =====
+%\node at ([yshift=5pt]sum.north) {};
+\node[below=0.2cm of H] {$y_M(s)$};
+\node[below=0.2cm of sum] {};
+
+\end{tikzpicture}
+
+\end{document}
