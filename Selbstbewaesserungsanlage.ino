@@ -14,7 +14,7 @@ byte adcsra_save = 135;
 volatile int f_wdt=1;
 
 //debug
-//int start = 0;
+int start = 0;
 
 
 // Watchdog Interrupt Service. This is executed when watchdog timed out.
